@@ -76,5 +76,12 @@ namespace ItemzApp.API.Entities
         //public List<ProjectJoinItemz> ProjectJoinItemz { get; set; }
 
         public List<ItemzTypeJoinItemz>? ItemzTypeJoinItemz { get; set; }
+
+        [NotMapped] // TODO: Why we have to use NotMapped for FromItemzJoinItemzTrace and not for ItemzTypeJoinItemz?
+        public virtual List<ItemzJoinItemzTrace>? FromItemzJoinItemzTrace { get; set; }
+
+        [NotMapped] // TODO: Why we have to use NotMapped for ToItemzJoinItemzTrace and not for ItemzTypeJoinItemz?
+        public virtual List<ItemzJoinItemzTrace>? ToItemzJoinItemzTrace { get; set; }
+
     }
 }

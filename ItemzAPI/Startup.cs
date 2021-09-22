@@ -180,6 +180,12 @@ namespace ItemzApp.API
                 @"Server=(localdb)\mssqllocaldb;Database=ItemzAppDB;Trusted_Connection=True;");
             });
 
+            services.AddDbContext<ItemzTraceContext>((serviceProvider, options) =>
+            {
+                options.UseSqlServer(
+                @"Server=(localdb)\mssqllocaldb;Database=ItemzAppDB;Trusted_Connection=True;");
+            });
+
             services.AddSwaggerGen(setupAction =>
             {
                 setupAction.SwaggerDoc("ItemzApp.OpenAPI.Specification",

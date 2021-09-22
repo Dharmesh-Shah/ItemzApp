@@ -43,6 +43,7 @@ namespace ItemzApp.API.DbContexts
         public DbSet<BaselineItemzType>? BaselineItemzType { get; set; }
         public DbSet<BaselineItemz>? BaselineItemz { get; set; }
         public DbSet<BaselineItemzTypeJoinBaselineItemz>? BaselineItemzTypeJoinBaselineItemz { get; set; }
+        public DbSet<ItemzJoinItemzTrace>? ItemzJoinItemzTrace { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -123,6 +124,16 @@ namespace ItemzApp.API.DbContexts
                                     typeof(ItemzSeverity),
                                     EntityPropertyDefaultValues.ItemzSeverityDefaultValue,
                                     true));
+
+            //modelBuilder.Entity<Itemz>()
+            //    .HasMany(i => i.FromItemzJoinItemzTrace)
+            //    .WithOne()
+            //    .HasForeignKey(ijit => ijit.ToItemzId);
+            //modelBuilder.Entity<Itemz>()
+            //    .HasMany(i => i.ToItemzJoinItemzTrace)
+            //    .WithOne()
+            //    .HasForeignKey(ijit => ijit.FromItemzId);
+
 
             // EXPLANATION: This will make sure that GUID property is set to autogenerate in the 
             // SQL Server Database as well.
@@ -425,6 +436,47 @@ namespace ItemzApp.API.DbContexts
                 .HasOne(bitjbi => bitjbi.BaselineItemz)
                 .WithMany(bit => bit!.BaselineItemzTypeJoinBaselineItemz)
                 .HasForeignKey(bitjbi => bitjbi.BaselineItemzId);
+
+            #endregion
+
+
+            #region ItemzJoinItemzTrace
+
+            // EXPLANATION: Here we are defining Self Referencing Many to Many relationship in EF Core between
+            // Itemz join Itemz Trace
+            // This is described as Indirect Many-to-Many relationships in Microsoft Docs at ...
+            // https://docs.microsoft.com/en-us/ef/core/modeling/relationships?tabs=fluent-api%2Cfluent-api-simple-key%2Csimple-key#indirect-many-to-many-relationships
+
+
+            modelBuilder.Entity<ItemzJoinItemzTrace>()
+                .HasOne(ijit => ijit.FromItemz)
+                .WithMany(fi => fi!.ToItemzJoinItemzTrace)
+                //.WithMany(ti => ti!.FromItemzJoinItemzTrace)
+                .HasForeignKey(ijit => ijit.FromItemzId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ItemzJoinItemzTrace>()
+                .HasOne(ijit => ijit.ToItemz)
+                .WithMany(ti => ti!.FromItemzJoinItemzTrace)
+                //.WithMany(fi => fi!.ToItemzJoinItemzTrace)
+                .HasForeignKey(ijit => ijit.ToItemzId)
+                .OnDelete(DeleteBehavior.Restrict); // See ::DeleteBehavior.Restrict:: NOTES below.
+
+            // EXPLANATION: ::DeleteBehavior.Restrict:: NOTES
+            // Note that we have to turn the delete cascade off for at least one of the relationships and
+            // manually delete the related join entities before deleting the main entity,
+            // because self referencing relationships always introduce possible cycles or multiple cascade path issues,
+            // preventing the usage of cascade delete.
+
+            // EXPLANATION: Here we are defining a composite key for a join table.
+            // it will use FromItemzId + ToItemzId as it's composite key.
+
+
+            modelBuilder.Entity<ItemzJoinItemzTrace>()
+                .HasKey(ijit => new { ijit.FromItemzId, ijit.ToItemzId });
+
+            // TODO: While ItemzContext is the main class that is going to be
+            // used for Database Migrations purposes, We should keep all the 
+            // details about configuring models in that central place for now.
 
             #endregion
 
